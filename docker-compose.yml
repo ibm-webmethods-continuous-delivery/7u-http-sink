@@ -1,0 +1,55 @@
+services:
+  # HTTP Sink server container
+  http-sink:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${VERSION:-dev}
+        BUILD_DATE: ${BUILD_DATE}
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+    image: http-sink:${VERSION:-dev}
+    container_name: http-sink-server
+    ports:
+      - "8080:8080"
+    environment:
+      HTTP_SINK_HOST: 0.0.0.0
+      HTTP_SINK_PORT: 8080
+      HTTP_SINK_BODY_DIR: /data/bodies
+      HTTP_SINK_MAX_BODY_SIZE: 104857600
+    volumes:
+      - http-sink-data:/data/bodies
+    networks:
+      - http-sink-net
+    healthcheck:
+      test: ["CMD", "/http-sink", "health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  # Acceptance test runner
+  acceptance-test:
+    image: alpine:3.22
+    container_name: http-sink-test
+    depends_on:
+      http-sink:
+        condition: service_healthy
+    volumes:
+      - ./container-acceptance-test:/test:ro
+      - http-sink-data:/data/bodies:ro
+    networks:
+      - http-sink-net
+    working_dir: /test
+    command: ["/bin/sh", "/test/test_container.sh"]
+    environment:
+      HTTP_SINK_URL: http://http-sink:8080
+      BODY_DIR: /data/bodies
+
+volumes:
+  http-sink-data:
+    driver: local
+
+networks:
+  http-sink-net:
+    driver: bridge
