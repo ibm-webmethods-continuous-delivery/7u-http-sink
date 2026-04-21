@@ -3,8 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-
-	// "io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -57,8 +55,6 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	var bodyFilePath string
 	var bodySize int64
 
-	// requestID := ""
-	
 	if r.Body != nil && r.ContentLength != 0 {
 		tempID := fmt.Sprintf("temp-%d", time.Now().UnixNano())
 		filePath, size, err := s.folderManager.SaveBody(tempID, r.Body)
@@ -70,7 +66,6 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// requestID = 
 	s.logger.LogRequest(r, bodySize, bodyFilePath)
 
 	w.WriteHeader(http.StatusOK)
