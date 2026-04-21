@@ -91,6 +91,7 @@ test_post_request() {
         fail_test "POST request returned $response instead of 200"
     fi
 }
+
 # Test 4: PUT request
 test_put_request() {
     log_test "Test 4: PUT request"
@@ -150,6 +151,7 @@ test_large_body() {
         fail_test "Large body request returned $response instead of 200"
     fi
 }
+
 # Test 8: Body files are created
 test_body_files_created() {
     log_test "Test 8: Body files are created in hourly folders"
@@ -194,6 +196,21 @@ test_content_types() {
     fi
 }
 
+# Test 11: Query parameters
+test_query_parameters() {
+    log_test "Test 11: Query parameters"
+    run_test
+    
+    response=$(curl -s -w "%{http_code}" -o /dev/null \
+        "$HTTP_SINK_URL/api/search?query=test&limit=10&offset=0")
+    
+    if [ "$response" = "200" ]; then
+        pass_test "Request with query parameters returned 200"
+    else
+        fail_test "Request with query parameters returned $response"
+    fi
+}
+
 # Main test execution
 main() {
     log_info "Starting HTTP Sink Container Acceptance Tests"
@@ -230,6 +247,7 @@ main() {
     test_body_files_created
     test_concurrent_requests
     test_content_types
+    test_query_parameters
     
     echo ""
     echo "=========================================="

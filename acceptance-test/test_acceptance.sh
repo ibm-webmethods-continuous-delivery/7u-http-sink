@@ -80,6 +80,11 @@ echo "  Test 3.4: DELETE request..."
 curl -s -X DELETE "http://127.0.0.1:$TEST_PORT/api/resource/123" \
     > /dev/null
 
+echo "  Test 3.5: GET request with query parameters..."
+curl -s -X GET "http://127.0.0.1:$TEST_PORT/api/search?query=test&limit=10&offset=0" \
+    -H "X-Search-ID: search-456" \
+    > /dev/null
+
 sleep 1
 
 echo ""
@@ -108,6 +113,12 @@ if ! grep -q "Path: /test/path" "$TEST_DATA_DIR/server.log"; then
     exit 1
 fi
 echo "  ✓ Path logging verified"
+
+if ! grep -q "Query: query=test" "$TEST_DATA_DIR/server.log"; then
+    echo "ERROR: Query parameters not logged"
+    exit 1
+fi
+echo "  ✓ Query parameter logging verified"
 
 if ! grep -q "X-Test-Header: test-value" "$TEST_DATA_DIR/server.log"; then
     echo "ERROR: Headers not logged"
@@ -145,6 +156,7 @@ echo "  - Server started successfully"
 echo "  - All HTTP methods logged correctly"
 echo "  - Headers logged correctly"
 echo "  - Paths logged correctly"
+echo "  - Query parameters logged correctly"
 echo "  - Body files created: $BODY_FILES"
 echo "  - Hour folders created: $HOUR_FOLDERS"
 echo ""

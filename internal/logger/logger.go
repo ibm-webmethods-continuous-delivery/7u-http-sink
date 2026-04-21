@@ -1,13 +1,13 @@
 package logger
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type RequestLogger struct {
@@ -21,13 +21,16 @@ func New(writer io.Writer) *RequestLogger {
 }
 
 func (l *RequestLogger) LogRequest(r *http.Request, bodySize int64, bodyFilePath string) string {
-	requestID := uuid.New().String()
+	requestID := generateShortID()
 	timestamp := time.Now().UTC().Format(time.RFC3339)
 
 	fmt.Fprintf(l.writer, "%s ===== RECEIVED REQUEST BEGIN =====\n", requestID)
 	fmt.Fprintf(l.writer, "%s Timestamp: %s\n", requestID, timestamp)
 	fmt.Fprintf(l.writer, "%s Method: %s\n", requestID, r.Method)
 	fmt.Fprintf(l.writer, "%s Path: %s\n", requestID, r.URL.Path)
+	if r.URL.RawQuery != "" {
+		fmt.Fprintf(l.writer, "%s Query: %s\n", requestID, r.URL.RawQuery)
+	}
 	fmt.Fprintf(l.writer, "%s Remote Address: %s\n", requestID, r.RemoteAddr)
 	
 	fmt.Fprintf(l.writer, "%s Headers:\n", requestID)
@@ -55,4 +58,15 @@ func (l *RequestLogger) LogError(format string, args ...interface{}) {
 
 func (l *RequestLogger) LogInfo(format string, args ...interface{}) {
 	fmt.Fprintf(l.writer, "INFO: "+format+"\n", args...)
+}
+
+// generateShortID creates a short, base64-encoded random ID (12 bytes = 16 chars base64)
+func generateShortID() string {
+	b := make([]byte, 12)
+	if _, err := rand.Read(b); err != nil {
+		// Fallback to timestamp-based ID if random fails
+		return fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+	// Use URL-safe base64 encoding without padding
+	return base64.RawURLEncoding.EncodeToString(b)
 }
