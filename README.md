@@ -201,11 +201,12 @@ WantedBy=multi-user.target
 
 ## License
 
+Apache 2.0 License
 Copyright IBM Corporation. All rights reserved.
 
 ## Contributing
 
-This is an internal IBM tool. For questions or issues, contact the development team.
+This is a development and exploration tool, not intended for production use. For questions or issues, open issues on this repository.
 
 ## Container Deployment
 
